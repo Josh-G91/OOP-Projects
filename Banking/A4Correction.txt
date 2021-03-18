@@ -1,0 +1,57 @@
+Account base class:
+
+Note that it would be ideal to declare adjustBalance() to be a pure virtual function in the Account base class since it has no implementation for this class. (minor)
+FYI only:  Note that the Customer object need not be declared protected in the base account class since it is not accessed by the derived classes (no deduction).
+Savings derived class: 
+
+There are basically two errors that cause logic errors in your Savings objects:  
+(1) to properly invoke the base Account class two-argument constructor, you must do so as shown below, rather than in the body of the 3-argument Savings constructor. 
+(2)  A derived class member function will override a virtual member function of the base class only if its prototype matches that of the base class in terms of number and type.  
+You add an extra and unnecessary parameter to the makeWithdrawal member function of the Savings class, and thus, when makeWithdrawal is called through a Savings object, it is the 
+makeWithdrawal of the base class that is called; polymorphism does not take place.  Here are the corrections:
+ 
+//Savings::Savings(Customer &c, double bal, double IRate)  //DSK COMMENT OUT
+Savings::Savings(Customer &c, double bal, double IRate)  : Account (bal, c)  //DSK ADDED CORRECTION
+{
+               interestRate=IRate;
+       //Account::Account(bal, c);   //DSK COMMENT OUT
+}
+//virtual bool makeWithdrawal(double withdrawal, double balance);  //DSK COMMENT OUT
+virtual bool makeWithdrawal(double withdrawal);  //DSK ADDED CORRECTION
+//bool Savings::makeWithdrawal(double withdrawal, double balance)  //DSK COMMENT OUT
+bool Savings::makeWithdrawal (double withdrawal)
+{  /* no change */ }
+Checking derived class: 
+
+The errors here are analogous to those of your Savings class; corrections:
+//Checking::Checking(const Customer&c, double bal,  bool ODP)  //DSK COMMENT OUT
+Checking::Checking(const Customer&c, double bal,  bool ODP)  : Account (bal, c)  //DSK ADDED CORRECTION
+{
+       //Account::Account(bal, c);   //DSK COMMENT OUT
+               overdraftProtection=ODP;
+}
+//virtual bool makeWithdrawal(double withdrawal, double balance);  //DSK COMMENT OUT
+virtual bool makeWithdrawal (double withdrawal);  //DSK ADDED CORRECTION
+//bool Checking::makeWithdrawal (double withdrawal, double balance)  //DSK COMMENT OUT
+bool Checking::makeWithdrawal (double withdrawal)  //DSK ADDED CORRECTION
+{  /* no change */ }
+
+Customer contained class: 
+
+Your overloaded assignment operator in this class never initializes the private member variables of this class, accountID and name.  Here’s a correction:
+
+Customer Customer::operator=(const Customer&c)
+{
+         //DSK COMMENTED OUT THE FOLLOWING:
+               
+        /*
+               Customer temp = *this;
+               temp.accountID= c.accountID;
+               temp.name = c.name;
+               return temp;
+               */
+        //DSK ADDED CORRECTION AS FOLLOWS:
+               accountID = c.accountID;
+               name = c.name;
+       return *this;
+}
